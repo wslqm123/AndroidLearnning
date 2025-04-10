@@ -90,7 +90,7 @@ jobs:
           RELEASE_KEYSTORE_PATH: "${{ github.workspace }}/app/release.jks"
         # 运行 Gradle Wrapper 执行 bundleRelease 任务 (生成 AAB)
         # 如果需要 APK，可以改为 assembleRelease
-        run: ./gradlew bundleRelease
+        run: ./gradlew assembleRelease
 
       # 步骤 7: 上传构建产物 (AAB 文件)
       # 将生成的 AAB 文件作为 Workflow 的 Artifact 上传，方便下载
@@ -100,9 +100,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # 上传后的 Artifact 名称 (在 Actions 页面显示)
-          name: app-release-aab
+          name: app-release-apk # 如果是AAB，name: app-release-aab
           # 需要上传的文件路径 (匹配 Gradle 构建输出的 AAB 文件)
           # 注意通配符 * 的使用
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/apk/release/*.apk # 如果是AAB，path: app/build/outputs/bundle/release/*.aab
           # 可选：设置 Artifact 的保留天数 (默认 90 天)
           # retention-days: 7

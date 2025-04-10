@@ -1,5 +1,5 @@
 // 文件路径: app/build.gradle.kts
-import java.io.File // 确需导入 File 类
+import java.io.File
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,7 +17,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -94,6 +93,9 @@ android {
         jvmTarget = "11"
     }
 
+    buildFeatures {
+        compose = true // 这个 buildFeature 标志仍然是启用 Compose UI 工具链所必需的
+    }
 }
 
 
