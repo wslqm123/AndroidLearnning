@@ -54,17 +54,56 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 第 5 步: 使用 Gradle 构建 Debug APK
-      # 运行 Gradle 命令来编译和打包 Debug 版本的 APK
-      # './gradlew' 会自动下载所需的 Gradle 版本 (如果缓存未命中或首次运行)
-      - name: Build Debug APK with Gradle
-        run: ./gradlew assembleDebug # 'assembleDebug' 是标准的构建 Debug APK 的任务
+      ## 第 5 步: 使用 Gradle 构建 Debug APK
+      ## 运行 Gradle 命令来编译和打包 Debug 版本的 APK
+      ## './gradlew' 会自动下载所需的 Gradle 版本 (如果缓存未命中或首次运行)
+      #- name: Build Debug APK with Gradle
+      #  run: ./gradlew assembleDebug # 'assembleDebug' 是标准的构建 Debug APK 的任务
 
-      # 第 6 步: 上传构建产物 (Upload Artifact)
-      # 将生成的 APK 文件上传为 GitHub Artifact，方便下载
-      - name: Upload Debug APK
+      ## 第 6 步: 上传构建产物 (Upload Artifact)
+      ## 将生成的 APK 文件上传为 GitHub Artifact，方便下载
+      #- name: Upload Debug APK
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: app-debug-apk # 你为这个产物起的名字
+      #    path: app/build/outputs/apk/debug/app-debug.apk # Debug APK 的标准输出路径，请根据你的项目确认
+      #    # 如果你的 Module 名不是 'app'，请修改 'app/' 部分
+
+      # 新增: 第 5 步: 解码 Keystore 文件
+      # 从 Secrets 读取 Base64 编码的 Keystore 内容，解码并保存为临时文件
+      - name: Decode Keystore
+        # 在工作目录下创建一个 keystore 文件
+        # 'secrets.RELEASE_KEYSTORE_BASE64' 引用你之前设置的 Secret
+        # 将解码后的内容输出到 app/release.jks (路径可自定义，但要与 build.gradle 中的配置对应)
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/app/release.jks
+        # 检查 secrets 是否已设置，如果未设置则跳过此步骤（例如 PR 构建可能不需要签名）
+        if: secrets.RELEASE_KEYSTORE_BASE64 != null
+
+      # 修改: 第 6 步: 使用 Gradle 构建 Release AAB (或 APK)
+      # 设置环境变量，供 build.gradle 读取签名信息
+      # 运行 Gradle 命令构建 Release 包 (bundleRelease 生成 AAB, assembleRelease 生成 APK)
+      - name: Build Release AAB with Gradle
+        # 使用 env 块将 Secrets 作为环境变量传递给 Gradle 进程
+        env:
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          # 设置 Keystore 文件的路径环境变量
+          RELEASE_KEYSTORE_PATH: "$GITHUB_WORKSPACE/app/release.jks"
+        # 运行 'bundleRelease' 任务来构建 AAB (推荐用于 Google Play)
+        # 如果需要 APK，则运行 'assembleRelease'
+        run: ./gradlew assembleRelease
+        # 仅当 secrets 存在时才执行此步骤
+        if: secrets.RELEASE_KEYSTORE_BASE64 != null && secrets.RELEASE_STORE_PASSWORD != null && secrets.RELEASE_KEY_ALIAS != null && secrets.RELEASE_KEY_PASSWORD != null
+
+      # 修改/新增: 第 7 步: 上传 Release AAB
+      # 上传构建好的 AAB 文件
+      - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk # 你为这个产物起的名字
-          path: app/build/outputs/apk/debug/app-debug.apk # Debug APK 的标准输出路径，请根据你的项目确认
-          # 如果你的 Module 名不是 'app'，请修改 'app/' 部分
+          name: app-release-aab # Artifact 名称
+          path: app/build/outputs/apk/release/*.apk
+          # 如果构建的是 AAB，路径是 app/build/outputs/bundle/release/*.aab ; AAB 文件的标准路径 (通常只有一个)
+          # 如果构建的是 APK，路径是 app/build/outputs/apk/release/*.apk
+        # 仅当上一步构建成功时上传
+        if: success() && secrets.RELEASE_KEYSTORE_BASE64 != null
