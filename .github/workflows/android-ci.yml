@@ -57,8 +57,7 @@ jobs:
       # 第 5 步: 解码 Keystore 文件
       - name: Decode Keystore
         run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/app/release.jks
-        # 修正这里的 if 条件
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null }}
+        # if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null }}  <-- 完全删除这一行
 
       # 第 6 步: 使用 Gradle 构建 Release AAB (或 APK)
       - name: Build Release AAB with Gradle
@@ -68,15 +67,13 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           RELEASE_KEYSTORE_PATH: "$GITHUB_WORKSPACE/app/release.jks"
         run: ./gradlew bundleRelease # 或者 assembleRelease
-        # 修正这里的 if 条件
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null && secrets.RELEASE_STORE_PASSWORD != null && secrets.RELEASE_KEY_ALIAS != null && secrets.RELEASE_KEY_PASSWORD != null }}
+        # if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null && secrets.RELEASE_STORE_PASSWORD != null && secrets.RELEASE_KEY_ALIAS != null && secrets.RELEASE_KEY_PASSWORD != null }} <-- 完全删除这一行
 
-      # 第 7 步: 上传 Release AAB
+      # 第 7 步: 上传 Release AAB (保持不变或也暂时移除 if)
       - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
           path: app/build/outputs/bundle/release/*.aab # 或 APK 路径
-        # 修正这里的 if 条件 (或者根据需要调整)
-        # 这个 if 确保只有前面的步骤成功且尝试了签名构建时才上传
+        # 如果这一步也有 if，可以考虑暂时也移除，或者保持原样看是否报错
         if: ${{ success() && secrets.RELEASE_KEYSTORE_BASE64 != null }}
