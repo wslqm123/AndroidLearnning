@@ -77,7 +77,7 @@ jobs:
         # 将解码后的内容输出到 app/release.jks (路径可自定义，但要与 build.gradle 中的配置对应)
         run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/app/release.jks
         # 检查 secrets 是否已设置，如果未设置则跳过此步骤（例如 PR 构建可能不需要签名）
-        if: secrets.RELEASE_KEYSTORE_BASE64 != null
+        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null }}
 
       # 修改: 第 6 步: 使用 Gradle 构建 Release AAB (或 APK)
       # 设置环境变量，供 build.gradle 读取签名信息
@@ -94,7 +94,7 @@ jobs:
         # 如果需要 APK，则运行 'assembleRelease'
         run: ./gradlew assembleRelease
         # 仅当 secrets 存在时才执行此步骤
-        if: secrets.RELEASE_KEYSTORE_BASE64 != null && secrets.RELEASE_STORE_PASSWORD != null && secrets.RELEASE_KEY_ALIAS != null && secrets.RELEASE_KEY_PASSWORD != null
+        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null && secrets.RELEASE_STORE_PASSWORD != null && secrets.RELEASE_KEY_ALIAS != null && secrets.RELEASE_KEY_PASSWORD != null }}
 
       # 修改/新增: 第 7 步: 上传 Release AAB
       # 上传构建好的 AAB 文件
@@ -106,4 +106,4 @@ jobs:
           # 如果构建的是 AAB，路径是 app/build/outputs/bundle/release/*.aab ; AAB 文件的标准路径 (通常只有一个)
           # 如果构建的是 APK，路径是 app/build/outputs/apk/release/*.apk
         # 仅当上一步构建成功时上传
-        if: success() && secrets.RELEASE_KEYSTORE_BASE64 != null
+        if: ${{ success() && secrets.RELEASE_KEYSTORE_BASE64 != null }}
