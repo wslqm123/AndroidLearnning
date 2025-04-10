@@ -40,21 +40,40 @@ android {
 
     signingConfigs {
         create("release") {
-            // 优先从环境变量读取
+            // --- 新增日志 ---
+            println("--- Signing Config Debug ---")
             val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+            println("Env RELEASE_KEYSTORE_PATH: $keystorePath")
             val storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+            println("Env RELEASE_STORE_PASSWORD provided: ${storePassword != null}") // 不直接打印密码
             val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            println("Env RELEASE_KEY_ALIAS: $keyAlias")
             val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            println("Env RELEASE_KEY_PASSWORD provided: ${keyPassword != null}") // 不直接打印密码
 
-            if (keystorePath != null && storePassword != null && keyAlias != null && keyPassword != null && File(keystorePath).exists()) {
+            var keystoreFileExists = false
+            if (keystorePath != null) {
+                try {
+                    keystoreFileExists = File(keystorePath).exists()
+                    println("Checking file existence at '$keystorePath': $keystoreFileExists")
+                } catch (e: Exception) {
+                    println("Error checking file existence at '$keystorePath': ${e.message}")
+                }
+            } else {
+                println("Keystore path is null, cannot check file existence.")
+            }
+            println("--------------------------")
+            // --- 结束新增日志 ---
+
+
+            if (keystorePath != null && storePassword != null && keyAlias != null && keyPassword != null && keystoreFileExists) {
+                println("All signing information seems valid, applying signing config.") // 新增成功日志
                 storeFile = file(keystorePath)
                 this.storePassword = storePassword
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
             } else {
-                println("Warning: Release signing information not fully provided via environment variables or keystore file not found.")
-                // 可以设置一个默认的 debug 签名或者让构建失败
-                // signingConfig = signingConfigs.getByName("debug") // 例如，回退到 debug 签名
+                println("Warning: Release signing information not fully provided via environment variables or keystore file not found.") // 保留现有警告
             }
         }
     }

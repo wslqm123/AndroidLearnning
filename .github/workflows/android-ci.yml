@@ -57,7 +57,15 @@ jobs:
       # 第 5 步: 解码 Keystore 文件
       - name: Decode Keystore
         run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/app/release.jks
-        # if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != null }}  <-- 完全删除这一行
+        if: ${{ env.SECRET_KEYSTORE_EXISTS == 'true' }} # 或者你之前的 if 条件
+
+      # --- 新增调试步骤 ---
+      - name: Verify Keystore File Existence
+        run: |
+          echo "Checking for keystore file at $GITHUB_WORKSPACE/app/release.jks"
+          ls -l $GITHUB_WORKSPACE/app/release.jks
+        # 运行这个调试步骤的条件应该和 Decode Keystore 相同
+        if: ${{ env.SECRET_KEYSTORE_EXISTS == 'true' }} # 或者你之前的 if 条件
 
       # 第 6 步: 使用 Gradle 构建 Release AAB (或 APK)
       - name: Build Release AAB with Gradle
