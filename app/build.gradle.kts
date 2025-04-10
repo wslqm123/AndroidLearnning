@@ -1,3 +1,6 @@
+// 文件路径: app/build.gradle.kts
+import java.io.File // 确需导入 File 类
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,15 +21,71 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // 签名配置块
+    signingConfigs {
+        // 创建名为 "release" 的签名配置
+        create("release") {
+            // 从环境变量读取 Keystore 相关信息
+            // 这些环境变量需要在 CI 环境 (如 GitHub Actions Secrets) 中设置
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+            val storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+
+            // 检查所有必要信息是否存在，并且 Keystore 文件真实存在
+            var keystoreFileExists = false
+            if (keystorePath != null) {
+                try {
+                    // 检查环境变量指定的路径下文件是否存在
+                    keystoreFileExists = File(keystorePath).exists()
+                } catch (e: Exception) {
+                    // 如果检查文件时出错，标记为不存在 (构建将在签名时失败)
+                    keystoreFileExists = false
+                    println("Error checking keystore file existence at '$keystorePath': ${e.message}") // 可以保留这个错误日志
+                }
+            }
+
+            // 只有当所有环境变量都已设置，并且 Keystore 文件存在时，才应用签名配置
+            if (keystorePath != null && storePassword != null && keyAlias != null && keyPassword != null && keystoreFileExists) {
+                println("Applying release signing configuration using keystore at: $keystorePath") // 确认配置应用的日志
+                // 将读取到的值赋给签名配置的属性
+                storeFile = file(keystorePath) // 使用 file() 将路径字符串转换为 File 对象
+                this.storePassword = storePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            } else {
+                // 如果缺少任何信息或文件不存在，此签名配置将无效。
+                // Gradle 在尝试使用此配置进行签名时会报错，这通常是期望的行为。
+                println("Warning: Release signing configuration incomplete or keystore file not found. Necessary environment variables: RELEASE_KEYSTORE_PATH, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD. Also ensure the file at RELEASE_KEYSTORE_PATH exists.")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // 对 release 构建类型应用上面定义的 "release" 签名配置
+            signingConfig = signingConfigs.getByName("release")
+
+            // 开启代码混淆和优化 (推荐用于 Release 构建)
+            isMinifyEnabled = true
+            // 开启资源压缩 (移除未使用的资源，推荐)
+            isShrinkResources = true
+
+            // 指定 ProGuard 规则文件
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 如果有特定于 release 的规则，可以添加，例如：
+            // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro", "proguard-release.pro")
+        }
+        debug {
+            // Debug 构建类型通常不需要特殊签名配置 (使用默认的 debug key)
+            isMinifyEnabled = false
         }
     }
+
+    // Java/Kotlin 编译选项
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -34,65 +93,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 
-    signingConfigs {
-        create("release") {
-            // --- 新增日志 ---
-            println("--- Signing Config Debug ---")
-            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
-            println("Env RELEASE_KEYSTORE_PATH: $keystorePath")
-            val storePassword = System.getenv("RELEASE_STORE_PASSWORD")
-            println("Env RELEASE_STORE_PASSWORD provided: ${storePassword != null}") // 不直接打印密码
-            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            println("Env RELEASE_KEY_ALIAS: $keyAlias")
-            val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
-            println("Env RELEASE_KEY_PASSWORD provided: ${keyPassword != null}") // 不直接打印密码
-
-            var keystoreFileExists = false
-            if (keystorePath != null) {
-                try {
-                    keystoreFileExists = File(keystorePath).exists()
-                    println("Checking file existence at '$keystorePath': $keystoreFileExists")
-                } catch (e: Exception) {
-                    println("Error checking file existence at '$keystorePath': ${e.message}")
-                }
-            } else {
-                println("Keystore path is null, cannot check file existence.")
-            }
-            println("--------------------------")
-            // --- 结束新增日志 ---
-
-
-            if (keystorePath != null && storePassword != null && keyAlias != null && keyPassword != null && keystoreFileExists) {
-                println("All signing information seems valid, applying signing config.") // 新增成功日志
-                storeFile = file(keystorePath)
-                this.storePassword = storePassword
-                this.keyAlias = keyAlias
-                this.keyPassword = keyPassword
-            } else {
-                println("Warning: Release signing information not fully provided via environment variables or keystore file not found.") // 保留现有警告
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            // ... 其他 release 配置 ...
-            signingConfig = signingConfigs.getByName("release") // 关联签名配置
-            isMinifyEnabled = true // 通常 Release 包会开启混淆
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-        debug {
-            // ... debug 配置 ...
-        }
-    }
 }
 
-dependencies {
 
+// 依赖项
+dependencies {
+    // --- 保留你项目的所有依赖项 ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -108,4 +115,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // --- 结束依赖项 ---
 }
