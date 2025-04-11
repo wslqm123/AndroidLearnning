@@ -5,9 +5,11 @@ name: Android CI Build
 
 # 触发 Workflow 的事件
 on:
-  # 当代码推送到 main 分支时触发
+  # 仅当一个 Git 标签被推送时触发 (例如 v1.0.0, v1.1-rc1 等)
   push:
-    branches: [ main ]
+    tags:
+      - 'v*' # 匹配以 'v' 开头的标签
+      # 你可以使用更精确的模式，例如 'v*.*.*' 只匹配 vX.Y.Z 格式
   # 当有 Pull Request 指向 main 分支时触发 (可选)
   pull_request:
     branches: [ main ]
