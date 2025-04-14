@@ -1,4 +1,4 @@
-package com.lqm.androidlearnning.ui.theme
+package com.lqm.androidlearning.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

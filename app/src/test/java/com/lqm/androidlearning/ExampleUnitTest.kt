@@ -1,4 +1,4 @@
-package com.lqm.androidlearnning
+package com.lqm.androidlearning
 
 import org.junit.Test
 

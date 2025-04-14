@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.lqm.androidlearnning"
+    namespace = "com.lqm.androidlearning"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.lqm.androidlearnning"
+        applicationId = "com.lqm.androidlearning"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -96,12 +96,18 @@ android {
     buildFeatures {
         compose = true // 这个 buildFeature 标志仍然是启用 Compose UI 工具链所必需的
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 
 // 依赖项
 dependencies {
-    // --- 保留你项目的所有依赖项 ---
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -110,6 +116,29 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+
+    // Rxjava
+    implementation(libs.rxjava) // 查看最新版本 https://github.com/ReactiveX/RxJava
+    implementation(libs.rxandroid) // 查看最新版本 https://github.com/ReactiveX/RxAndroid
+    // 可选: RxKotlin - 提供更多 Kotlin 友好的扩展 (非必需，但推荐)
+    implementation(libs.rxkotlin) // 查看最新版本 https://github.com/ReactiveX/RxKotlin
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.adapter.rxjava3)
+    // Moshi 解析 Json
+    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
+    implementation(libs.converter.moshi)
+    // OkHttp日志
+    implementation(libs.logging.interceptor)
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+
+    /** 测试依赖 */
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -117,5 +146,12 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    // --- 结束依赖项 ---
+    // 添加 work-testing 依赖 (用于测试)：
+    testImplementation(libs.androidx.work.testing) // 或与 work-runtime-ktx 相同的版本
+    androidTestImplementation(libs.androidx.work.testing) // 如果需要 UI 测试
+    // 添加 Robolectric 依赖:
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.core)
+    testImplementation(libs.core.ktx)
+
 }
