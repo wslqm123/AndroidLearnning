@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.android.junit5) // 应用插件
+    alias(libs.plugins.devtools.ksp)
 }
 
 android {
@@ -18,6 +20,10 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
     }
 
     // 签名配置块
@@ -100,6 +106,7 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            isReturnDefaultValues = true // 可选：防止调用未打桩的 Android 框架方法时崩溃
         }
     }
 }
@@ -120,6 +127,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
 
+    implementation(project(":klines")) // 依赖 klines 模块
+
     // Rxjava
     implementation(libs.rxjava) // 查看最新版本 https://github.com/ReactiveX/RxJava
     implementation(libs.rxandroid) // 查看最新版本 https://github.com/ReactiveX/RxAndroid
@@ -136,6 +145,10 @@ dependencies {
     implementation(libs.logging.interceptor)
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+    // Room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
 
     /** 测试依赖 */
@@ -153,5 +166,17 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.core)
     testImplementation(libs.core.ktx)
+    // Mockito 核心库
+    testImplementation(libs.mockito.core) // 使用最新的稳定版本
+    // 可选：Kotlin 特定辅助库 (如果使用 Kotlin，推荐添加)
+    testImplementation(libs.mockito.kotlin)
+    // 可选：将 Mockito 与 JUnit 5 结合使用 (推荐)
+    testImplementation(libs.mockito.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api) // 或最新的 JUnit 5
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.jupiter.params)
+    testImplementation(kotlin("test"))
+    // 可选 - 测试帮助库
+    testImplementation(libs.androidx.room.testing)
 
 }

@@ -6,12 +6,12 @@ import kotlinx.coroutines.flow.flow
 class GithubRepository {
 
     suspend fun getUserFlow(username: String) = flow {
-        val result = NetworkUtils.getDefaultApi().getUser(username)
+        val result = NetworkUtils.getGithubApi().getUser(username)
         emit(result)
     }
 
     suspend fun getEventsFlow() = flow {
-        val result = NetworkUtils.getDefaultApi().getEvent()
+        val result = NetworkUtils.getGithubApi().getEvent()
         emit(result)
     }
 }

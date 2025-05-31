@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import com.lqm.androidlearning.binance.BinanceActivity
+import com.lqm.androidlearning.compose.ComposeActivity
 import com.lqm.androidlearning.github.GithubUserActivity
 import com.lqm.androidlearning.thirdlibrary.RxjavaActivity
 import com.lqm.androidlearning.ui.theme.AndroidLearningTheme
@@ -40,6 +42,13 @@ fun FunctionList(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     Column(modifier = modifier) {
         Button(onClick = {
+            context.startActivity(Intent(context, ComposeActivity::class.java))
+        }) {
+            Text(
+                text = "Compose"
+            )
+        }
+        Button(onClick = {
             context.startActivity(Intent(context, RxjavaActivity::class.java))
         }) {
             Text(
@@ -51,6 +60,13 @@ fun FunctionList(modifier: Modifier = Modifier) {
         }) {
             Text(
                 text = "Github"
+            )
+        }
+        Button(onClick = {
+            context.startActivity(Intent(context, BinanceActivity::class.java))
+        }) {
+            Text(
+                text = "Binance"
             )
         }
     }

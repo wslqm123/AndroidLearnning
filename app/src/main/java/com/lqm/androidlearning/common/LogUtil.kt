@@ -6,7 +6,11 @@ class LogUtil {
 
     companion object {
         fun d(msg: String) {
-            Log.d(LOG_TAG, msg)
+            d(LOG_TAG, msg)
+        }
+
+        fun d(tag: String, msg: String) {
+            Log.d(tag, msg)
         }
 
 

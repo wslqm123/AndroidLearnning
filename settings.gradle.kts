@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AndroidLearning"
 include(":app")
+include(":klines")

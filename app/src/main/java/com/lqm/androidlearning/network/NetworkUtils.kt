@@ -10,21 +10,31 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class NetworkUtils {
 
     companion object {
-        private var api: GithubApiService? = null
+        private var githubApi: GithubApiService? = null
+        private var binanceApi: BinanceApiService? = null
 
-        fun <T> createApi(clazz: Class<T>): T {
-            return buildRetrofit().create<T>(clazz)
+        fun <T> createApi(clazz: Class<T>, url: String = "https://api.github.com/"): T {
+            return buildRetrofit(url).create<T>(clazz)
         }
 
-        fun getDefaultApi(): GithubApiService {
-            return api ?: createApi(GithubApiService::class.java).apply {
-                api = this
+        fun getGithubApi(): GithubApiService {
+            return githubApi ?: createApi(GithubApiService::class.java).apply {
+                githubApi = this
             }
         }
 
-        private fun buildRetrofit(): Retrofit {
+        fun getBinanceApi(): BinanceApiService {
+            return binanceApi ?: createApi(
+                BinanceApiService::class.java,
+                "https://api.binance.com/"
+            ).apply {
+                binanceApi = this
+            }
+        }
+
+        private fun buildRetrofit(url: String): Retrofit {
             return Retrofit.Builder()
-                .baseUrl("https://api.github.com/")
+                .baseUrl(url)
                 .client(getClient())
                 .addConverterFactory(MoshiConverterFactory.create(MoshiUtil.getMoshi())) // 使用 Moshi 实例
                 .build()
